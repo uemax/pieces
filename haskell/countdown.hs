@@ -104,5 +104,37 @@ solutions ns n = [e | ns' <- choices ns -- find all number combinations
                     , e <- exprs ns'    -- find all expression combinations
                     , eval e == [n]]    -- test expression combination
 
+-- | Fusing Two Functions
+
+-- | Valid expressions and their values
+type Result = (Expr, Int)
+
+-- | Fuse the generation and evaluation of expressions
+results :: [Int] -> [Result]
+results [] = []
+results [n] = [(Val n, n) | n > 0]
+results ns = [res | (ls, rs) <- split ns
+                  , lx <- results ls
+                  , ry <- results rs
+                  , res <- combine' lx ry]
+
+-- | Add the expression to eval list depending on it valid or not
+combine' :: Result -> Result -> [Result]
+combine' (l, x) (r, y) =
+  [(App o l r, apply o x y) | o <- [Add, Sub, Mul, Div]
+                            -- , valid o x y]  -- 10x faster
+                            , valid' o x y] -- 50x faster
+-- | more limitations
+valid' Add x y = x <= y -- 1+2 == 2+1, only select 1+2
+valid' Sub x y = x > y
+valid' Mul x y = x <= y && x /= 1 && y /= 1
+valid' Div x y = x `mod` y == 0 && y /= 1
+
+-- | new solutions
+solutions' :: [Int] -> Int -> [Expr]
+solutions' ns n = [e | ns' <- choices ns
+                     , (e, m) <- results ns'
+                     , m == n]
+
 main :: IO ()
-main = print (solutions [1, 3, 7, 10, 25, 50] 765)
+main = print (solutions' [1, 3, 7, 10, 25, 50] 765)

@@ -6,6 +6,7 @@
 -- | 3. The winner is the player who removes the last star of
 -- |    stars from the board.
 
+import Control.Monad
 import Data.Char
 
 -- | Board utilities
@@ -39,11 +40,7 @@ putRow row num = do putStr (show row)
                     putStrLn (stars num)
 
 putBoard :: Board -> IO ()
-putBoard [a, b, c, d, e] = do putRow 1 a
-                              putRow 2 b
-                              putRow 3 c
-                              putRow 4 d
-                              putRow 5 e
+putBoard b = mapM_ (\(row, num) -> putRow row num) (zip [1..5] b)
 
 getDigit :: String -> IO Int
 getDigit prompt = do putStr prompt
